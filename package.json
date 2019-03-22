@@ -1,0 +1,23 @@
+{
+  "name": "luren-swagger",
+  "version": "0.0.1",
+  "description": "swagger API doc for luren",
+  "main": "index.js",
+  "repository": "https://github.com/vcwen/luren-swagger.git",
+  "author": "Vincent Wen <wenwei1202@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "immutable": "^4.0.0-rc.12",
+    "json-schema-to-openapi-schema": "^0.3.0",
+    "koa-mount": "^4.0.0",
+    "koa-static": "^5.0.0",
+    "lodash": "^4.17.11",
+    "reflect-metadata": "^0.1.13"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.0.48",
+    "@types/lodash": "^4.14.123",
+    "koa": "^2.7.0",
+    "luren": "^0.0.7-5"
+  }
+}
