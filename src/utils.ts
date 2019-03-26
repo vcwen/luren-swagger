@@ -8,7 +8,7 @@ const isFileType = (schema: any) => {
 }
 
 export const getParams = (ctrl: object, propKey: string) => {
-  const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAM, ctrl, propKey)
+  const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAMS, ctrl, propKey)
   if (!paramsMetadata) {
     return []
   }
@@ -50,7 +50,7 @@ export const getParams = (ctrl: object, propKey: string) => {
 }
 
 export const getRequestBody = (ctrl: object, prop: string) => {
-  const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAM, ctrl, prop)
+  const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAMS, ctrl, prop)
   if (!paramsMetadata) {
     return {} as any
   }

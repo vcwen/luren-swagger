@@ -125,7 +125,7 @@ export class Swagger {
         if (!this._openApi) {
           const controllers = luren.getControllers()
           for (const ctrl of controllers) {
-            const ctrlMetadata: CtrlMetadata = Reflect.getMetadata(MetadataKey.CONTROLLER, ctrl.constructor)
+            const ctrlMetadata: CtrlMetadata = Reflect.getMetadata(MetadataKey.CONTROLLER, ctrl)
             const tag: ITag = { name: ctrlMetadata.name }
             if (openApi.tags) {
               openApi.tags.push(tag)
@@ -156,8 +156,9 @@ export class Swagger {
               }
               const responses = getResponses(ctrl, prop)
               operation.responses = responses
-              openApi.paths[routeMetadata.path] = openApi.paths[routeMetadata.path] || {}
-              openApi.paths[routeMetadata.path][routeMetadata.method.toLowerCase()] = operation
+              const path = Path.join(luren.apiPrefix, routeMetadata.path)
+              openApi.paths[path] = openApi.paths[path] || {}
+              openApi.paths[path][routeMetadata.method.toLowerCase()] = operation
             }
           }
           this._openApi = openApi
