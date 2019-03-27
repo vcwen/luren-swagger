@@ -1,3 +1,4 @@
+import { Map } from 'immutable'
 import mount from 'koa-mount'
 import Router from 'koa-router'
 import serve from 'koa-static'
@@ -132,12 +133,8 @@ export class Swagger {
             } else {
               openApi.tags = [tag]
             }
-            const props = Object.getOwnPropertyNames(Object.getPrototypeOf(ctrl))
-            for (const prop of props) {
-              const routeMetadata: RouteMetadata = Reflect.getMetadata(MetadataKey.ROUTE, ctrl, prop)
-              if (!routeMetadata) {
-                continue
-              }
+            const routeMetadataMap: Map<string, RouteMetadata> = Reflect.getMetadata(MetadataKey.ROUTES, ctrl) || Map()
+            for (const [prop, routeMetadata] of routeMetadataMap) {
               const pathObj: IPath = {}
               pathObj[routeMetadata.method] = {
                 tags: [ctrlMetadata.name],
