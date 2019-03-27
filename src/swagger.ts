@@ -156,7 +156,7 @@ export class Swagger {
               }
               const responses = getResponses(ctrl, prop)
               operation.responses = responses
-              const path = Path.join(luren.apiPrefix, routeMetadata.path)
+              const path = Path.join(luren.getPrefix(), routeMetadata.path)
               openApi.paths[path] = openApi.paths[path] || {}
               openApi.paths[path][routeMetadata.method.toLowerCase()] = operation
             }
