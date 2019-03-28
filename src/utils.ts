@@ -57,26 +57,29 @@ export const getRequestBody = (ctrl: object, prop: string) => {
   const body: IRequestBody = { content: {} }
   let content = 'application/json'
   let schema: any = { type: 'object', properties: {} }
-  for (const paramMetadata of paramsMetadata) {
-    if (paramMetadata.source === 'body') {
-      if (isFileType(paramMetadata.schema)) {
-        if (paramMetadata.root) {
-          content = paramMetadata.mime || 'application/octet-stream'
+  const bodyParamsMetadata = paramsMetadata.filter((metadata) => metadata.source === 'body')
+  if (!bodyParamsMetadata.isEmpty()) {
+    for (const paramMetadata of bodyParamsMetadata) {
+      if (paramMetadata.source === 'body') {
+        if (isFileType(paramMetadata.schema)) {
+          if (paramMetadata.root) {
+            content = paramMetadata.mime || 'application/octet-stream'
+          } else {
+            content = 'multipart/form-data'
+            schema.properties[paramMetadata.name] = paramMetadata.schema
+          }
         } else {
-          content = 'multipart/form-data'
-          schema.properties[paramMetadata.name] = paramMetadata.schema
-        }
-      } else {
-        if (paramMetadata.root) {
-          schema = paramMetadata.schema
-        } else {
-          schema.properties[paramMetadata.name] = paramMetadata.schema
+          if (paramMetadata.root) {
+            schema = paramMetadata.schema
+          } else {
+            schema.properties[paramMetadata.name] = paramMetadata.schema
+          }
         }
       }
     }
+    body.content = { [content]: { schema: toOpenApiSchema(schema) } }
+    return body
   }
-  body.content = { [content]: { schema: toOpenApiSchema(schema) } }
-  return body
 }
 
 export const getResponses = (ctrl: object, prop) => {
