@@ -121,8 +121,10 @@ export class Swagger {
         info: this._info,
         servers: this._servers,
         tags: [],
-        paths: {},
-        components: {
+        paths: {}
+      }
+      if (!_.isEmpty(this._securitySchemas)) {
+        openApi.components = {
           securitySchemes: this._securitySchemas
         }
       }
