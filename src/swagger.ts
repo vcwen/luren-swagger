@@ -106,10 +106,12 @@ export class Swagger {
   private _servers: IServer[]
   private _openApi: any
   private _path: string
-  constructor(options?: { info?: IInfo; servers?: IServer[]; path?: string }) {
+  private _securitySchemas: any
+  constructor(options?: { info?: IInfo; servers?: IServer[]; path?: string; securitySchemes: any }) {
     this._info = (options && options.info) || { title: 'Luren Swagger', version: '1.0.0' }
     this._servers = (options && options.servers) || [{ url: '/' }]
     this._path = (options && options.path) || '/explorer'
+    this._securitySchemas = _.get(options, 'securitySchemes', {})
   }
   public pluginify() {
     return (luren: Luren) => {
@@ -119,7 +121,10 @@ export class Swagger {
         info: this._info,
         servers: this._servers,
         tags: [],
-        paths: {}
+        paths: {},
+        components: {
+          securitySchemes: this._securitySchemas
+        }
       }
       const router = new Router()
       router.get('/explorer/swagger.json', async (ctx) => {
@@ -153,6 +158,10 @@ export class Swagger {
               }
               const responses = getResponses(ctrl, prop)
               operation.responses = responses
+              if (!_.isEmpty(this._securitySchemas)) {
+                const props = Object.getOwnPropertyNames(this._securitySchemas)
+                operation.security = props.map((p) => ({ [p]: [] }))
+              }
               const path = Path.join(luren.getPrefix(), routeMetadata.path)
               openApi.paths[path] = openApi.paths[path] || {}
               openApi.paths[path][routeMetadata.method.toLowerCase()] = operation
