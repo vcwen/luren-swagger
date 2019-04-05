@@ -73,6 +73,28 @@
   dependencies:
     "@types/koa" "*"
 
+"@types/koa-mount@^3.0.1":
+  version "3.0.1"
+  resolved "http://registry.npm.taobao.org/@types/koa-mount/download/@types/koa-mount-3.0.1.tgz#2c068d1696b173c62c316158210c4316c4401f57"
+  integrity sha1-LAaNFpaxc8YsMWFYIQxDFsRAH1c=
+  dependencies:
+    "@types/koa" "*"
+
+"@types/koa-send@*":
+  version "4.1.2"
+  resolved "http://registry.npm.taobao.org/@types/koa-send/download/@types/koa-send-4.1.2.tgz#978f8267ad116d12ac6a18fecd8f34c5657e09ad"
+  integrity sha1-l4+CZ60RbRKsahj+zY80xWV+Ca0=
+  dependencies:
+    "@types/koa" "*"
+
+"@types/koa-static@^4.0.1":
+  version "4.0.1"
+  resolved "http://registry.npm.taobao.org/@types/koa-static/download/@types/koa-static-4.0.1.tgz#b740d80a549b0a0a7a3b38918daecde88a7a50ec"
+  integrity sha1-t0DYClSbCgp6OziRja7N6Ip6UOw=
+  dependencies:
+    "@types/koa" "*"
+    "@types/koa-send" "*"
+
 "@types/koa@*", "@types/koa@^2.0.48":
   version "2.0.48"
   resolved "http://registry.npm.taobao.org/@types/koa/download/@types/koa-2.0.48.tgz#29162783029d3e5df8b58c55f6bf0d35f78fc39f"
@@ -218,7 +240,7 @@ debug@^3.1.0:
   dependencies:
     ms "^2.1.1"
 
-debug@^4.0.1:
+debug@^4.0.1, debug@^4.1.1:
   version "4.1.1"
   resolved "http://registry.npm.taobao.org/debug/download/debug-4.1.1.tgz#3b72260255109c6b589cee050f1d516139664791"
   integrity sha1-O3ImAlUQnGtYnO4FDx1RYTlmR5E=
@@ -583,13 +605,14 @@ lodash@^4.17.10, lodash@^4.17.11:
   resolved "http://registry.npm.taobao.org/lodash/download/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
   integrity sha1-s56mIp72B+zYniyN8SU2iRysm40=
 
-luren@^0.0.7-5:
-  version "0.0.7-5"
-  resolved "http://registry.npm.taobao.org/luren/download/luren-0.0.7-5.tgz#05b2ceca2591a25b4de743c45379291ddc751ecb"
-  integrity sha1-BbLOyiWRoltN50PEU3kpHdx1Hss=
+luren@^0.0.8-2:
+  version "0.0.8-2"
+  resolved "http://registry.npm.taobao.org/luren/download/luren-0.0.8-2.tgz?cache=0&other_urls=http%3A%2F%2Fregistry.npm.taobao.org%2Fluren%2Fdownload%2Fluren-0.0.8-2.tgz#8accdab120a1846ec7e35b2095ee62ddcae5e414"
+  integrity sha1-iszasSChhG7H41sgle5i3crl5BQ=
   dependencies:
     ajv "^6.10.0"
     boom "^7.2.0"
+    debug "^4.1.1"
     decamelize "^2.0.0"
     formidable "^1.2.1"
     immutable "^4.0.0-rc.12"

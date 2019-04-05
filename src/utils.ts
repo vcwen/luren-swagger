@@ -1,7 +1,8 @@
 import { List } from 'immutable'
-import toOpenApiSchema from 'json-schema-to-openapi-schema'
 import { MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
+// tslint:disable-next-line: no-var-requires
+const toOpenApiSchema = require('json-schema-to-openapi-schema')
 
 export const getParams = (ctrl: object, propKey: string) => {
   const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAMS, ctrl, propKey)
@@ -78,7 +79,7 @@ export const getRequestBody = (ctrl: object, prop: string) => {
   }
 }
 
-export const getResponses = (ctrl: object, prop) => {
+export const getResponses = (ctrl: object, prop: string) => {
   const responsesMetadata: Map<number, ResponseMetadata> = Reflect.getMetadata(MetadataKey.RESPONSE, ctrl, prop)
   const responses: { [code: string]: IResponse } = {}
   for (const [statusCode, resMetadata] of responsesMetadata) {

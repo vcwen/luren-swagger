@@ -83,6 +83,7 @@ export interface IPath {
   delete?: any
   summary?: string
   description?: string
+  [other: string]: any
 }
 
 export interface ITag {
@@ -143,13 +144,13 @@ export class Swagger {
             const routeMetadataMap: Map<string, RouteMetadata> = Reflect.getMetadata(MetadataKey.ROUTES, ctrl) || Map()
             for (const [prop, routeMetadata] of routeMetadataMap) {
               const pathObj: IPath = {}
-              pathObj[routeMetadata.method] = {
+              pathObj[routeMetadata.method.toLowerCase()] = {
                 tags: [ctrlMetadata.name],
                 description: routeMetadata.desc,
                 responses: {},
                 deprecated: routeMetadata.deprecated
               }
-              const operation: IOperation = pathObj[routeMetadata.method]
+              const operation: IOperation = pathObj[routeMetadata.method.toLowerCase()]
               const params = getParams(ctrl, prop)
               if (!_.isEmpty(params)) {
                 operation.parameters = params
