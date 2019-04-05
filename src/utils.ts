@@ -3,10 +3,6 @@ import toOpenApiSchema from 'json-schema-to-openapi-schema'
 import { MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 
-const isFileType = (schema: any) => {
-  return schema.type === 'string' && schema.format === 'binary'
-}
-
 export const getParams = (ctrl: object, propKey: string) => {
   const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAMS, ctrl, propKey)
   if (!paramsMetadata) {
@@ -61,12 +57,12 @@ export const getRequestBody = (ctrl: object, prop: string) => {
   if (!bodyParamsMetadata.isEmpty()) {
     for (const paramMetadata of bodyParamsMetadata) {
       if (paramMetadata.source === 'body') {
-        if (isFileType(paramMetadata.schema)) {
+        if (paramMetadata.isFile) {
           if (paramMetadata.root) {
             content = paramMetadata.mime || 'application/octet-stream'
           } else {
             content = 'multipart/form-data'
-            schema.properties[paramMetadata.name] = paramMetadata.schema
+            schema.properties[paramMetadata.name] = { type: 'string', format: 'binary' }
           }
         } else {
           if (paramMetadata.root) {
@@ -89,11 +85,12 @@ export const getResponses = (ctrl: object, prop) => {
     const response: IResponse = {} as any
     const res: IMediaType = {} as any
     let contentType = 'application/json'
-
-    if (isFileType(resMetadata.schema)) {
-      contentType = resMetadata.schema.mime || 'application/octet-stream'
+    let schema = resMetadata.schema
+    if (resMetadata.isStream) {
+      contentType = resMetadata.mime || 'application/octet-stream'
+      schema = { type: 'string', format: 'binary' }
     }
-    res.schema = toOpenApiSchema(resMetadata.schema)
+    res.schema = toOpenApiSchema(schema)
     response.content = { [contentType]: res }
     responses[statusCode] = response
   }
