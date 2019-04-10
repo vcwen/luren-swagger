@@ -1,4 +1,5 @@
 import { List } from 'immutable'
+import _ from 'lodash'
 import { MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
@@ -79,6 +80,28 @@ export const getRequestBody = (ctrl: object, prop: string) => {
   }
 }
 
+const normalizeResponseSchema = (schema: any): any => {
+  if (schema.jsonType) {
+    schema.type = schema.jsonType
+  } else {
+    if (schema.type === 'object') {
+      if (!_.isEmpty(schema.properties)) {
+        const props = Object.getOwnPropertyNames(schema.properties)
+        for (const prop of props) {
+          const propSchema = schema.properties[prop]
+          normalizeResponseSchema(propSchema)
+          if (propSchema.name) {
+            Reflect.set(schema.properties, propSchema.name, propSchema)
+            Reflect.deleteProperty(schema.properties, prop)
+          }
+        }
+      }
+    } else if (schema.type === 'array' && !_.isEmpty(schema.items)) {
+      normalizeResponseSchema(schema.items)
+    }
+  }
+}
+
 export const getResponses = (ctrl: object, prop: string) => {
   const responsesMetadata: Map<number, ResponseMetadata> = Reflect.getMetadata(MetadataKey.RESPONSE, ctrl, prop)
   const responses: { [code: string]: IResponse } = {}
@@ -86,7 +109,7 @@ export const getResponses = (ctrl: object, prop: string) => {
     const response: IResponse = {} as any
     const res: IMediaType = {} as any
     let contentType = 'application/json'
-    let schema = resMetadata.schema
+    let schema = normalizeResponseSchema(_.cloneDeep(resMetadata.schema))
     if (resMetadata.isStream) {
       contentType = resMetadata.mime || 'application/octet-stream'
       schema = { type: 'string', format: 'binary' }
