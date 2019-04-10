@@ -100,6 +100,7 @@ const normalizeResponseSchema = (schema: any): any => {
       normalizeResponseSchema(schema.items)
     }
   }
+  return schema
 }
 
 export const getResponses = (ctrl: object, prop: string) => {
