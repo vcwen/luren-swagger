@@ -1,6 +1,6 @@
 import { List } from 'immutable'
 import _ from 'lodash'
-import { MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
+import { jsSchemaToJsonSchema, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
 const toOpenApiSchema = require('json-schema-to-openapi-schema')
@@ -21,11 +21,12 @@ export const getParams = (ctrl: object, propKey: string) => {
         const props = Object.getOwnPropertyNames(paramMetadata.schema.properties)
         const requiredProps = paramMetadata.schema.required || []
         for (const prop of props) {
+          const propSchema = jsSchemaToJsonSchema(paramMetadata.schema.properties[prop])
           const param: IParameter = {
             name: paramMetadata.name,
             in: paramMetadata.source,
             required: requiredProps.includes(prop),
-            schema: toOpenApiSchema(paramMetadata.schema.properties[prop])
+            schema: toOpenApiSchema(propSchema)
           }
           params.push(param)
         }
@@ -34,11 +35,12 @@ export const getParams = (ctrl: object, propKey: string) => {
         throw new TypeError("Parameter's type must be 'object' when it's root")
       }
     } else {
+      const schema = jsSchemaToJsonSchema(paramMetadata.schema)
       const param: IParameter = {
         name: paramMetadata.name,
         in: paramMetadata.source,
         required: paramMetadata.required,
-        schema: paramMetadata.schema,
+        schema: toOpenApiSchema(schema),
         description: paramMetadata.desc
       }
       params.push(param)
@@ -54,24 +56,26 @@ export const getRequestBody = (ctrl: object, prop: string) => {
   }
   const body: IRequestBody = { content: {} }
   let content = 'application/json'
-  let schema: any = { type: 'object', properties: {} }
+  let schema: any = { type: 'object', properties: {}, required: [] }
   const bodyParamsMetadata = paramsMetadata.filter((metadata) => metadata.source === 'body')
   if (!bodyParamsMetadata.isEmpty()) {
     for (const paramMetadata of bodyParamsMetadata) {
       if (paramMetadata.source === 'body') {
-        if (paramMetadata.isFile) {
+        if (paramMetadata.schema.type === 'file') {
           if (paramMetadata.root) {
             content = paramMetadata.mime || 'application/octet-stream'
           } else {
             content = 'multipart/form-data'
-            schema.properties[paramMetadata.name] = { type: 'string', format: 'binary' }
           }
+        }
+        if (paramMetadata.root) {
+          schema = jsSchemaToJsonSchema(paramMetadata.schema)
+          break
         } else {
-          if (paramMetadata.root) {
-            schema = paramMetadata.schema
-          } else {
-            schema.properties[paramMetadata.name] = paramMetadata.schema
+          if (paramMetadata.required) {
+            schema.required.push(paramMetadata.name)
           }
+          schema.properties[paramMetadata.name] = jsSchemaToJsonSchema(paramMetadata.schema)
         }
       }
     }
