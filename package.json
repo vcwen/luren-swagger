@@ -13,7 +13,7 @@
     "koa-static": "^5.0.0",
     "lodash": "^4.17.11",
     "luren": "^0.0.8-13",
-    "luren-schema": "^0.0.7-7",
+    "luren-schema": "^0.0.7-9",
     "nunjucks": "^3.2.0",
     "reflect-metadata": "^0.1.13"
   },
