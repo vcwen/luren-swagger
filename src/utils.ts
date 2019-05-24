@@ -1,6 +1,7 @@
 import { List } from 'immutable'
 import _ from 'lodash'
-import { jsSchemaToJsonSchema, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
+import { MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
+import { jsSchemaToJsonSchema } from 'luren-schema'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
 const toOpenApiSchema = require('json-schema-to-openapi-schema')

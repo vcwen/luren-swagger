@@ -1,6 +1,6 @@
 {
   "name": "luren-swagger",
-  "version": "0.0.1-7",
+  "version": "0.0.1-9",
   "description": "swagger API doc for luren",
   "main": "dist/index.js",
   "repository": "https://github.com/vcwen/luren-swagger.git",
@@ -12,16 +12,18 @@
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
     "lodash": "^4.17.11",
-    "luren": "^0.0.8-13",
-    "luren-schema": "^0.0.7-9",
+    "luren": "^0.0.8-17",
+    "luren-schema": "^0.0.7-12",
     "nunjucks": "^3.2.0",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
     "@types/koa": "^2.0.48",
     "@types/koa-mount": "^3.0.1",
+    "@types/koa-router": "^7.0.40",
     "@types/koa-static": "^4.0.1",
     "@types/lodash": "^4.14.123",
+    "@types/nunjucks": "^3.1.1",
     "koa": "^2.7.0",
     "tslint-config-prettier": "^1.18.0"
   }
