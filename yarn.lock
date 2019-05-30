@@ -1252,28 +1252,28 @@ lodash@^4.17.10, lodash@^4.17.11:
   resolved "https://registry.npm.taobao.org/lodash/download/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
   integrity sha1-s56mIp72B+zYniyN8SU2iRysm40=
 
-luren-schema@^0.0.7-12:
-  version "0.0.7-12"
-  resolved "https://registry.npm.taobao.org/luren-schema/download/luren-schema-0.0.7-12.tgz#31112673305e60d54a1988866a4fbf29a363abfc"
-  integrity sha1-MREmczBeYNVKGYiGak+/KaNjq/w=
+luren-schema@^0.0.11:
+  version "0.0.11"
+  resolved "https://registry.npm.taobao.org/luren-schema/download/luren-schema-0.0.11.tgz#b9b2f0866dac1bbe516716f005eda22f790459a7"
+  integrity sha1-ubLwhm2sG75RZxbwBe2iL3kEWac=
   dependencies:
     immutable "^4.0.0-rc.12"
     lodash "^4.17.11"
     reflect-metadata "^0.1.13"
 
-luren-schema@^0.0.7-7:
-  version "0.0.7-7"
-  resolved "https://registry.npm.taobao.org/luren-schema/download/luren-schema-0.0.7-7.tgz#740828d317012315db3b10da9510b0bb9f3fff99"
-  integrity sha1-dAgo0xcBIxXbOxDalRCwu58//5k=
+luren-schema@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.npm.taobao.org/luren-schema/download/luren-schema-0.0.9.tgz#93f51c097a6f9d9b76021470818bd40a0182fb03"
+  integrity sha1-k/UcCXpvnZt2AhRwgYvUCgGC+wM=
   dependencies:
     immutable "^4.0.0-rc.12"
     lodash "^4.17.11"
     reflect-metadata "^0.1.13"
 
-luren@^0.0.8-17:
-  version "0.0.8-17"
-  resolved "https://registry.npm.taobao.org/luren/download/luren-0.0.8-17.tgz#d6be90f467ba85fbef5bbb1c84c5927bfe7b755c"
-  integrity sha1-1r6Q9Ge6hfvvW7schMWSe/57dVw=
+luren@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.npm.taobao.org/luren/download/luren-0.0.10.tgz#b9fa3d679eb0ca5042262f42a55dc11848964670"
+  integrity sha1-ufo9Z56wylBCJi9CpV3BGEiWRnA=
   dependencies:
     ajv "^6.10.0"
     boom "^7.2.0"
@@ -1287,7 +1287,7 @@ luren@^0.0.8-17:
     koa-helmet "^4.0.0"
     koa-router "^7.4.0"
     lodash "^4.17.10"
-    luren-schema "^0.0.7-7"
+    luren-schema "^0.0.9"
     pluralize "^7.0.0"
     reflect-metadata "^0.1.13"
 
