@@ -58,7 +58,7 @@ export interface IRequestBody {
 export interface IResponse {
   description?: string
   headers?: any
-  content: { [content: string]: IMediaType }
+  content?: { [content: string]: IMediaType }
 }
 
 export interface IOperation {

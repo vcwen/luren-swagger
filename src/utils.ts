@@ -1,6 +1,6 @@
 import { List } from 'immutable'
 import _ from 'lodash'
-import { JsDataTypes, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
+import { HttpStatusCode, JsDataTypes, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
 import { jsSchemaToJsonSchema } from 'luren-schema'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
@@ -111,17 +111,22 @@ const normalizeResponseSchema = (schema: any): any => {
 export const getResponses = (ctrl: object, prop: string) => {
   const responsesMetadata: Map<number, ResponseMetadata> = Reflect.getMetadata(MetadataKey.RESPONSE, ctrl, prop)
   const responses: { [code: string]: IResponse } = {}
-  for (const [statusCode, resMetadata] of responsesMetadata) {
-    const response: IResponse = {} as any
-    const res: IMediaType = {} as any
-    let contentType = 'application/json'
-    const schema = jsSchemaToJsonSchema(_.cloneDeep(resMetadata.schema), JsDataTypes)
-    if (resMetadata.schema.type === 'stream') {
-      contentType = resMetadata.mime || 'application/octet-stream'
+  if (responsesMetadata) {
+    for (const [statusCode, resMetadata] of responsesMetadata) {
+      const response: IResponse = {} as any
+      const res: IMediaType = {} as any
+      let contentType = 'application/json'
+      const schema = jsSchemaToJsonSchema(_.cloneDeep(resMetadata.schema), JsDataTypes)
+      if (resMetadata.schema.type === 'stream') {
+        contentType = resMetadata.mime || 'application/octet-stream'
+      }
+      res.schema = toOpenApiSchema(schema)
+      response.content = { [contentType]: res }
+      responses[statusCode] = response
     }
-    res.schema = toOpenApiSchema(schema)
-    response.content = { [contentType]: res }
-    responses[statusCode] = response
+  } else {
+    responses[HttpStatusCode.OK] = { description: 'successful operation' }
   }
+
   return responses
 }
