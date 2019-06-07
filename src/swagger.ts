@@ -165,7 +165,15 @@ export class Swagger {
                 const props = Object.getOwnPropertyNames(this._securitySchemas)
                 operation.security = props.map((p) => ({ [p]: [] }))
               }
-              const path = Path.join(luren.getPrefix(), routeMetadata.path)
+              let path = Path.join(luren.getPrefix(), routeMetadata.path)
+              const reg = /:(\w+)/
+              let match: any
+              do {
+                match = reg.exec(path)
+                if (match) {
+                  path = path.replace(match[0], `{${match[1]}}`)
+                }
+              } while (match)
               openApi.paths[path] = openApi.paths[path] || {}
               openApi.paths[path][routeMetadata.method.toLowerCase()] = operation
             }
