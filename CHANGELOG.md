@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.0.5"></a>
+## [0.0.5](https://github.com/vcwen/luren-swagger/compare/v0.0.4...v0.0.5) (2019-06-10)
+
+
+### Bug Fixes
+
+* **package.json:** update dependencies ([34c526e](https://github.com/vcwen/luren-swagger/commit/34c526e))
+* **swagger.ts:** fix path with params ([00a6894](https://github.com/vcwen/luren-swagger/commit/00a6894))
+
+
+
 <a name="0.0.4"></a>
 ## [0.0.4](https://github.com/vcwen/luren-swagger/compare/v0.0.3...v0.0.4) (2019-05-31)
 
