@@ -183,9 +183,10 @@ export class Swagger {
         ctx.body = this._openApi
       })
       router.get('/', async (ctx) => {
+        const href = ctx.href.endsWith('/') ? ctx.href : ctx.href + '/'
         ctx.body = njk.render(Path.resolve(__dirname, '../swagger-dist/index.html'), {
-          url: Url.resolve(Path.join(ctx.href, '/'), 'swagger.json'),
-          prefix: Url.resolve(Path.join(ctx.href, '/'), 'assets')
+          url: Url.resolve(href, 'swagger.json'),
+          prefix: Url.resolve(href, 'assets')
         })
       })
       koa.use(mount(this._path, router.routes() as any))
