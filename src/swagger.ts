@@ -130,7 +130,7 @@ export class Swagger {
         }
       }
       const router = new Router()
-      router.get('/explorer/swagger.json', async (ctx) => {
+      router.get('/swagger.json', async (ctx) => {
         if (!this._openApi) {
           const controllers = luren.getControllers()
           for (const ctrl of controllers) {
@@ -182,13 +182,13 @@ export class Swagger {
         }
         ctx.body = this._openApi
       })
-      router.get(this._path, async (ctx) => {
+      router.get('/', async (ctx) => {
         ctx.body = njk.render(Path.resolve(__dirname, '../swagger-dist/index.html'), {
-          url: Url.resolve(ctx.href, Path.join(ctx.path, 'swagger.json')),
-          prefix: Path.join(ctx.path, 'assets')
+          url: Url.resolve(Path.join(ctx.href, '/'), 'swagger.json'),
+          prefix: Url.resolve(Path.join(ctx.href, '/'), 'assets')
         })
       })
-      koa.use(router.routes()).use(router.allowedMethods())
+      koa.use(mount(this._path, router.routes() as any))
       koa.use(mount(Path.join(this._path, 'assets'), serve(Path.resolve(__dirname, '../swagger-dist'))))
     }
   }
