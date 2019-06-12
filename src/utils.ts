@@ -115,11 +115,8 @@ export const getResponses = (ctrl: object, prop: string) => {
     for (const [statusCode, resMetadata] of responsesMetadata) {
       const response: IResponse = {} as any
       const res: IMediaType = {} as any
-      let contentType = 'application/json'
+      const contentType = resMetadata.mime || 'application/json'
       const schema = jsSchemaToJsonSchema(_.cloneDeep(resMetadata.schema), JsDataTypes)
-      if (resMetadata.schema.type === 'stream') {
-        contentType = resMetadata.mime || 'application/octet-stream'
-      }
       res.schema = toOpenApiSchema(schema)
       response.content = { [contentType]: res }
       responses[statusCode] = response
