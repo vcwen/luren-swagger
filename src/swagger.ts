@@ -6,7 +6,6 @@ import _ from 'lodash'
 import { CtrlMetadata, Luren, MetadataKey, RouteMetadata } from 'luren'
 import njk from 'nunjucks'
 import Path from 'path'
-import Url from 'url'
 import { getParams, getRequestBody, getResponses } from './utils'
 
 export interface IContact {
@@ -129,7 +128,7 @@ export class Swagger {
           securitySchemes: this._securitySchemas
         }
       }
-      const router = new Router()
+      const router = new Router({ prefix: this._path })
       router.get('/swagger.json', async (ctx) => {
         if (!this._openApi) {
           const controllers = luren.getControllers()
@@ -183,13 +182,14 @@ export class Swagger {
         ctx.body = this._openApi
       })
       router.get('/', async (ctx) => {
-        const href = ctx.href.endsWith('/') ? ctx.href : ctx.href + '/'
+        let path = ctx.path.endsWith('/') ? ctx.path.substr(0, ctx.path.length - 1) : ctx.path
+        path = path.substr(path.lastIndexOf('/') + 1)
         ctx.body = njk.render(Path.resolve(__dirname, '../swagger-dist/index.html'), {
-          url: Url.resolve(href, 'swagger.json'),
-          prefix: Url.resolve(href, 'assets')
+          url: Path.join(path, 'swagger.json'),
+          prefix: Path.join(path, 'assets')
         })
       })
-      koa.use(mount(this._path, router.routes() as any))
+      koa.use(router.routes())
       koa.use(mount(Path.join(this._path, 'assets'), serve(Path.resolve(__dirname, '../swagger-dist'))))
     }
   }
