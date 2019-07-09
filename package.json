@@ -1,6 +1,6 @@
 {
   "name": "luren-swagger",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "swagger API doc for luren",
   "main": "dist/index.js",
   "repository": "https://github.com/vcwen/luren-swagger.git",
@@ -28,7 +28,7 @@
     "@types/nunjucks": "^3.1.1",
     "koa": "^2.7.0",
     "luren": "^0.0.25",
-    "luren-schema": "^0.0.14",
+    "luren-schema": "^0.0.20",
     "tslint-config-prettier": "^1.18.0"
   }
 }
