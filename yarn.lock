@@ -1261,10 +1261,10 @@ luren-schema@^0.0.14:
     lodash "^4.17.11"
     reflect-metadata "^0.1.13"
 
-luren@^0.0.15:
-  version "0.0.15"
-  resolved "https://registry.npm.taobao.org/luren/download/luren-0.0.15.tgz#c71344f27309e0c4bae7797e71e75e1d6122d423"
-  integrity sha1-xxNE8nMJ4MS653l+cedeHWEi1CM=
+luren@^0.0.25:
+  version "0.0.25"
+  resolved "https://registry.npm.taobao.org/luren/download/luren-0.0.25.tgz#290039917dff036a22144f4fd7c575d750e4fe3d"
+  integrity sha1-KQA5kX3/A2oiFE9P18V111Dk/j0=
   dependencies:
     ajv "^6.10.0"
     boom "^7.3.0"
@@ -1276,10 +1276,13 @@ luren@^0.0.15:
     koa "^2.7.0"
     koa-bodyparser "^4.2.1"
     koa-helmet "^4.0.0"
+    koa-mount "^4.0.0"
     koa-router "^7.4.0"
+    koa-send "^5.0.0"
     lodash "^4.17.10"
     pluralize "^7.0.0"
     reflect-metadata "^0.1.13"
+    uid-safe "^2.1.5"
 
 map-cache@^0.2.2:
   version "0.2.2"
@@ -1645,6 +1648,11 @@ qs@^6.5.2:
   resolved "https://registry.npm.taobao.org/qs/download/qs-6.7.0.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fqs%2Fdownload%2Fqs-6.7.0.tgz#41dc1a015e3d581f1621776be31afb2876a9b1bc"
   integrity sha1-QdwaAV49WB8WIXdr4xr7KHapsbw=
 
+random-bytes@~1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npm.taobao.org/random-bytes/download/random-bytes-1.0.0.tgz#4f68a1dc0ae58bd3fb95848c30324db75d64360b"
+  integrity sha1-T2ih3Arli9P7lYSMMDJNt11kNgs=
+
 raw-body@^2.3.3:
   version "2.4.0"
   resolved "https://registry.npm.taobao.org/raw-body/download/raw-body-2.4.0.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fraw-body%2Fdownload%2Fraw-body-2.4.0.tgz#a1ce6fb9c9bc356ca52e89256ab59059e13d0332"
@@ -1995,6 +2003,13 @@ type-is@^1.6.16:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.24"
+
+uid-safe@^2.1.5:
+  version "2.1.5"
+  resolved "https://registry.npm.taobao.org/uid-safe/download/uid-safe-2.1.5.tgz#2b3d5c7240e8fc2e58f8aa269e5ee49c0857bd3a"
+  integrity sha1-Kz1cckDo/C5Y+Komnl7knAhXvTo=
+  dependencies:
+    random-bytes "~1.0.0"
 
 union-value@^1.0.0:
   version "1.0.0"
