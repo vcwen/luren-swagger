@@ -1,11 +1,11 @@
-import { Map } from 'immutable'
-import mount from 'koa-mount'
+import { List, Map } from 'immutable'
 import Router from 'koa-router'
-import serve from 'koa-static'
 import _ from 'lodash'
-import { CtrlMetadata, Luren, MetadataKey, RouteMetadata } from 'luren'
+import { ActionMetadata, APIKeyAuthentication, AuthenticationType, CtrlMetadata, Luren, MetadataKey } from 'luren'
+import AuthenticationProcessor from 'luren/dist/lib/Authentication'
 import njk from 'nunjucks'
 import Path from 'path'
+import Url from 'url'
 import { getParams, getRequestBody, getResponses } from './utils'
 
 export interface IContact {
@@ -95,7 +95,7 @@ export interface IOpenApi {
   info: IInfo
   servers: IServer[]
   paths: { [path: string]: IPath }
-  components?: any
+  components: { schemas: any; securitySchemes: any }
   security?: any[]
   tags?: ITag[]
   externalDocs?: any
@@ -106,31 +106,28 @@ export class Swagger {
   private _servers: IServer[]
   private _openApi: any
   private _path: string
-  private _securitySchemas: any
-  constructor(options?: { info?: IInfo; servers?: IServer[]; path?: string; securitySchemes: any }) {
+  constructor(options?: { info?: IInfo; servers?: IServer[]; path?: string }) {
     this._info = (options && options.info) || { title: 'Luren Swagger', version: '1.0.0' }
     this._servers = (options && options.servers) || [{ url: '/' }]
     this._path = (options && options.path) || '/explorer'
-    this._securitySchemas = _.get(options, 'securitySchemes', {})
   }
   public pluginify() {
     return (luren: Luren) => {
-      const koa = luren.getKoa()
       const openApi: IOpenApi = {
         openapi: '3.0.0',
         info: this._info,
         servers: this._servers,
         tags: [],
-        paths: {}
-      }
-      if (!_.isEmpty(this._securitySchemas)) {
-        openApi.components = {
-          securitySchemes: this._securitySchemas
+        paths: {},
+        components: {
+          schemas: {},
+          securitySchemes: {}
         }
       }
-      const router = new Router({ prefix: this._path })
+      const router = new Router()
       router.get('/swagger.json', async (ctx) => {
         if (!this._openApi) {
+          const authentications = List<AuthenticationProcessor>()
           const controllers = luren.getControllers()
           for (const ctrl of controllers) {
             const ctrlMetadata: CtrlMetadata = Reflect.getMetadata(MetadataKey.CONTROLLER, ctrl)
@@ -140,16 +137,17 @@ export class Swagger {
             } else {
               openApi.tags = [tag]
             }
-            const routeMetadataMap: Map<string, RouteMetadata> = Reflect.getMetadata(MetadataKey.ROUTES, ctrl) || Map()
-            for (const [prop, routeMetadata] of routeMetadataMap) {
+            const actionMetadataMap: Map<string, ActionMetadata> =
+              Reflect.getMetadata(MetadataKey.ACTIONS, ctrl) || Map()
+            for (const [prop, actionMetadata] of actionMetadataMap) {
               const pathObj: IPath = {}
-              pathObj[routeMetadata.method.toLowerCase()] = {
+              pathObj[actionMetadata.method.toLowerCase()] = {
                 tags: [ctrlMetadata.name],
-                description: routeMetadata.desc,
+                description: actionMetadata.desc,
                 responses: {},
-                deprecated: routeMetadata.deprecated
+                deprecated: actionMetadata.deprecated
               }
-              const operation: IOperation = pathObj[routeMetadata.method.toLowerCase()]
+              const operation: IOperation = pathObj[actionMetadata.method.toLowerCase()]
               const params = getParams(ctrl, prop)
               if (!_.isEmpty(params)) {
                 operation.parameters = params
@@ -160,11 +158,14 @@ export class Swagger {
               }
               const responses = getResponses(ctrl, prop)
               operation.responses = responses
-              if (!_.isEmpty(this._securitySchemas)) {
-                const props = Object.getOwnPropertyNames(this._securitySchemas)
-                operation.security = props.map((p) => ({ [p]: [] }))
-              }
-              let path = Path.join(luren.getPrefix(), routeMetadata.path)
+              const version = actionMetadata.version || ctrlMetadata.version || ''
+              let path = Path.join(
+                luren.getPrefix(),
+                ctrlMetadata.prefix,
+                version,
+                ctrlMetadata.path,
+                actionMetadata.path
+              )
               const reg = /:(\w+)/
               let match: any
               do {
@@ -174,23 +175,46 @@ export class Swagger {
                 }
               } while (match)
               openApi.paths[path] = openApi.paths[path] || {}
-              openApi.paths[path][routeMetadata.method.toLowerCase()] = operation
+              openApi.paths[path][actionMetadata.method.toLowerCase()] = operation
+              const authProcessor: AuthenticationProcessor =
+                Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl, prop) ||
+                Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl)
+              if (authProcessor && authProcessor.type !== AuthenticationType.NONE) {
+                const processor = authentications.some((item) => {
+                  return item.equals(authProcessor)
+                })
+                if (!processor) {
+                  authentications.push(authProcessor)
+                }
+                operation.security = [{ [authProcessor.name]: [] }]
+              }
             }
           }
+          for (const item of authentications) {
+            let securitySchema: any
+            switch (item.type) {
+              case AuthenticationType.API_KEY:
+                const p = item as APIKeyAuthentication
+                securitySchema = { type: 'apiKey', name: p.key, in: p.source }
+                break
+            }
+            if (securitySchema) {
+              openApi.components.securitySchemes[item.name] = securitySchema
+            }
+          }
+
           this._openApi = openApi
         }
         ctx.body = this._openApi
       })
       router.get('/', async (ctx) => {
-        let path = ctx.path.endsWith('/') ? ctx.path.substr(0, ctx.path.length - 1) : ctx.path
-        path = path.substr(path.lastIndexOf('/') + 1)
         ctx.body = njk.render(Path.resolve(__dirname, '../swagger-dist/index.html'), {
-          url: Path.join(path, 'swagger.json'),
-          prefix: Path.join(path, 'assets')
+          url: Url.resolve(Path.join(ctx.href, '/'), 'swagger.json'),
+          prefix: Url.resolve(Path.join(ctx.href, '/'), 'assets')
         })
       })
-      koa.use(router.routes())
-      koa.use(mount(Path.join(this._path, 'assets'), serve(Path.resolve(__dirname, '../swagger-dist'))))
+      luren.use(this._path, router.routes() as any)
+      luren.serve(Path.join(this._path, 'assets'), { root: Path.resolve(__dirname, '../swagger-dist') })
     }
   }
 }
