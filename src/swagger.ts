@@ -126,7 +126,7 @@ export class Swagger {
       const router = new Router()
       router.get('/swagger.json', async (ctx) => {
         if (!this._openApi) {
-          const authentications = List<AuthenticationProcessor>()
+          let authentications = List<AuthenticationProcessor>()
           const controllers = luren.getControllers()
           for (const ctrl of controllers) {
             const ctrlMetadata: CtrlMetadata = Reflect.getMetadata(MetadataKey.CONTROLLER, ctrl)
@@ -175,15 +175,16 @@ export class Swagger {
               } while (match)
               openApi.paths[path] = openApi.paths[path] || {}
               openApi.paths[path][actionMetadata.method.toLowerCase()] = operation
-              const authProcessor: AuthenticationProcessor =
+              const authProcessor: AuthenticationProcessor | undefined =
                 Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl, prop) ||
-                Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl)
+                Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl) ||
+                luren.getSecuritySettings().authentication
               if (authProcessor && authProcessor.type !== AuthenticationType.NONE) {
                 const processor = authentications.some((item) => {
                   return item.equals(authProcessor)
                 })
                 if (!processor) {
-                  authentications.push(authProcessor)
+                  authentications = authentications.push(authProcessor)
                 }
                 operation.security = [{ [authProcessor.name]: [] }]
               }
