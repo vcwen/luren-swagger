@@ -5,7 +5,6 @@ import { ActionMetadata, APIKeyAuthentication, AuthenticationType, CtrlMetadata,
 import AuthenticationProcessor from 'luren/dist/lib/Authentication'
 import njk from 'nunjucks'
 import Path from 'path'
-import Url from 'url'
 import { getParams, getRequestBody, getResponses } from './utils'
 
 export interface IContact {
@@ -209,8 +208,8 @@ export class Swagger {
       })
       router.get('/', async (ctx) => {
         ctx.body = njk.render(Path.resolve(__dirname, '../swagger-dist/index.html'), {
-          url: Url.resolve(Path.join(ctx.href, '/'), 'swagger.json'),
-          prefix: Url.resolve(Path.join(ctx.href, '/'), 'assets')
+          swaggerJsonPath: 'swagger.json',
+          assetPrefix: 'assets'
         })
       })
       luren.use(this._path, router.routes() as any)

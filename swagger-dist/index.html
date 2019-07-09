@@ -4,9 +4,6 @@
   <head>
     <meta charset="UTF-8">
     <title>Swagger UI</title>
-    <link rel="stylesheet" type="text/css" href="{{prefix}}/swagger-ui.css" >
-    <link rel="icon" type="image/png" href="{{prefix}}/favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="{{prefix}}/favicon-16x16.png" sizes="16x16" />
     <style>
       html
       {
@@ -32,27 +29,71 @@
 
   <body>
     <div id="swagger-ui"></div>
-
-    <script src="{{prefix}}/swagger-ui-bundle.js"> </script>
-    <script src="{{prefix}}/swagger-ui-standalone-preset.js"> </script>
     <script>
+    function trimSlash(str) {
+      if (str.startsWith('/')) {
+        str = str.substring(1)
+      }
+      if (str.endsWith('/')) {
+        str = str.substr(0, str.length - 1)
+      }
+      return str
+    }
+    function joinPath() {
+      let segments = [...arguments]
+      segments = segments.map((segment) => {
+        return trimSlash(segment)
+      })
+      return '/' + segments.join('/')
+    }
+    function appendLink(link) {
+      const links = document.getElementsByTagName('link')
+      const lastLink = document.getElementsByTagName('title')[0]
+      lastLink.after(link)
+    }
+    function createStylesheet(href) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.type = 'text/css'
+      link.href = href
+      appendLink(link)
+    }
+    function createIcon(href, size) {
+      const link = document.createElement('link')
+      link.rel = 'icon'
+      link.type = 'image/png'
+      link.href = href
+      link.sizes = size
+      appendLink(link)
+    }
+    function appendScript(script) {
+      const target = document.getElementById('swagger-ui')
+      target.after(script)
+    }
+    function createScript(src) {
+      const script = document.createElement('script')
+      script.src = src
+      appendScript(script)
+    }
+    const path = location.pathname
+    const prefix = joinPath(path, '{{assetPrefix}}')
+    createStylesheet(joinPath(prefix, '/swagger-ui.css'))
+    createIcon(joinPath(prefix, 'favicon-32x32.png'), '32x32')
+    createIcon(joinPath(prefix, 'favicon-16x16.png'), '16x16')
+    createScript(joinPath(prefix, '/swagger-ui-bundle.js'))
+    createScript(joinPath(prefix, '/swagger-ui-standalone-preset.js'))
     window.onload = function() {
+      const url = joinPath(path, '{{swaggerJsonPath}}')
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
-        url: "{{url}}",
+        url,
         dom_id: '#swagger-ui',
         deepLinking: true,
-        presets: [
-          SwaggerUIBundle.presets.apis,
-          SwaggerUIStandalonePreset
-        ],
-        plugins: [
-          SwaggerUIBundle.plugins.DownloadUrl
-        ],
-        layout: "StandaloneLayout"
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+        layout: 'StandaloneLayout'
       })
       // End Swagger UI call region
-
       window.ui = ui
     }
   </script>
