@@ -1,6 +1,6 @@
 {
   "name": "luren-swagger",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "swagger API doc for luren",
   "main": "dist/index.js",
   "repository": "https://github.com/vcwen/luren-swagger.git",
