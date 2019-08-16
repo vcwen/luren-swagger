@@ -1,11 +1,11 @@
-import { List, Map } from 'immutable'
+import { Map } from 'immutable'
 import Router from 'koa-router'
 import _ from 'lodash'
-import { ActionMetadata, APIKeyAuthentication, AuthenticationType, CtrlMetadata, Luren, MetadataKey } from 'luren'
+import { ActionMetadata, AuthenticationType, CtrlMetadata, Luren, MetadataKey } from 'luren'
 import AuthenticationProcessor from 'luren/dist/lib/Authentication'
 import njk from 'nunjucks'
 import Path from 'path'
-import { getParams, getRequestBody, getResponses } from './utils'
+import { authenticationProcessorToSecuritySchema, getParams, getRequestBody, getResponses } from './utils'
 
 export interface IContact {
   name: string
@@ -126,7 +126,7 @@ export class Swagger {
       const router = new Router()
       router.get('/swagger.json', async (ctx) => {
         if (!this._openApi) {
-          let authentications = List<AuthenticationProcessor>()
+          let securitySchemes = Map<string, any>()
           const controllers = luren.getControllers()
           for (const ctrl of controllers) {
             const ctrlMetadata: CtrlMetadata = Reflect.getMetadata(MetadataKey.CONTROLLER, ctrl)
@@ -180,26 +180,20 @@ export class Swagger {
                 Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl) ||
                 luren.getSecuritySettings().authentication
               if (authProcessor && authProcessor.type !== AuthenticationType.NONE) {
-                const processor = authentications.some((item) => {
-                  return item.equals(authProcessor)
-                })
-                if (!processor) {
-                  authentications = authentications.push(authProcessor)
+                const securitySchema = authenticationProcessorToSecuritySchema(authProcessor)
+                const entry = securitySchemes.findEntry((val) => _.isEqual(val, securitySchema))
+                if (entry) {
+                  operation.security = [{ [entry[0]]: [] }]
+                } else {
+                  securitySchemes = securitySchemes.set(authProcessor.name, securitySchema)
+                  operation.security = [{ [authProcessor.name]: [] }]
                 }
-                operation.security = [{ [authProcessor.name]: [] }]
               }
             }
           }
-          for (const item of authentications) {
-            let securitySchema: any
-            switch (item.type) {
-              case AuthenticationType.API_KEY:
-                const p = item as APIKeyAuthentication
-                securitySchema = { type: 'apiKey', name: p.key, in: p.source }
-                break
-            }
+          for (const [name, securitySchema] of securitySchemes.values()) {
             if (securitySchema) {
-              openApi.components.securitySchemes[item.name] = securitySchema
+              openApi.components.securitySchemes[name] = securitySchema
             }
           }
 

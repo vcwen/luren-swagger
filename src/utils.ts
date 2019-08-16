@@ -1,7 +1,8 @@
 import { List } from 'immutable'
 import _ from 'lodash'
-import { HttpStatusCode, JsDataTypes, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
-import { jsSchemaToJsonSchema } from 'luren-schema'
+import { AuthenticationType, HttpStatusCode, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
+import { utils } from 'luren-schema'
+import AuthenticationProcessor, { APITokenAuthentication } from 'luren/dist/lib/Authentication'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
 const toOpenApiSchema = require('json-schema-to-openapi-schema')
@@ -22,7 +23,7 @@ export const getParams = (ctrl: object, propKey: string) => {
         const props = Object.getOwnPropertyNames(paramMetadata.schema.properties)
         const requiredProps = paramMetadata.schema.required || []
         for (const prop of props) {
-          const propSchema = jsSchemaToJsonSchema(paramMetadata.schema.properties[prop], JsDataTypes)
+          const propSchema = utils.toJsonSchema(paramMetadata.schema.properties[prop])
           const param: IParameter = {
             name: paramMetadata.name,
             in: paramMetadata.source,
@@ -36,7 +37,7 @@ export const getParams = (ctrl: object, propKey: string) => {
         throw new TypeError("Parameter's type must be 'object' when it's root")
       }
     } else {
-      const schema = jsSchemaToJsonSchema(paramMetadata.schema, JsDataTypes)
+      const schema = utils.toJsonSchema(paramMetadata.schema)
       const param: IParameter = {
         name: paramMetadata.name,
         in: paramMetadata.source,
@@ -70,13 +71,13 @@ export const getRequestBody = (ctrl: object, prop: string) => {
           }
         }
         if (paramMetadata.root) {
-          schema = jsSchemaToJsonSchema(paramMetadata.schema, JsDataTypes)
+          schema = utils.toJsonSchema(paramMetadata.schema)
           break
         } else {
           if (paramMetadata.required) {
             schema.required.push(paramMetadata.name)
           }
-          schema.properties[paramMetadata.name] = jsSchemaToJsonSchema(paramMetadata.schema, JsDataTypes)
+          schema.properties[paramMetadata.name] = utils.toJsonSchema(paramMetadata.schema)
         }
       }
     }
@@ -116,7 +117,7 @@ export const getResponses = (ctrl: object, prop: string) => {
       const response: IResponse = {} as any
       const res: IMediaType = {} as any
       const contentType = resMetadata.mime || 'application/json'
-      const schema = jsSchemaToJsonSchema(_.cloneDeep(resMetadata.schema), JsDataTypes)
+      const schema = utils.toJsonSchema(resMetadata.schema)
       res.schema = toOpenApiSchema(schema)
       response.content = { [contentType]: res }
       responses[statusCode] = response
@@ -126,4 +127,14 @@ export const getResponses = (ctrl: object, prop: string) => {
   }
 
   return responses
+}
+
+export const authenticationProcessorToSecuritySchema = (processor: AuthenticationProcessor): any => {
+  switch (processor.type) {
+    case AuthenticationType.API_TOKEN:
+      const p = processor as APITokenAuthentication
+      return { type: 'apiKey', name: p.key, in: p.source }
+    default:
+      return undefined
+  }
 }
