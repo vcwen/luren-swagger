@@ -191,7 +191,7 @@ export class Swagger {
               }
             }
           }
-          for (const [name, securitySchema] of securitySchemes.values()) {
+          for (const [name, securitySchema] of securitySchemes.entries()) {
             if (securitySchema) {
               openApi.components.securitySchemes[name] = securitySchema
             }
