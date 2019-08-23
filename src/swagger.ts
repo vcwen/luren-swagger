@@ -86,7 +86,7 @@ export interface IPath {
 
 export interface ITag {
   name: string
-  description?: []
+  description?: string
 }
 
 export interface IOpenApi {
@@ -130,7 +130,7 @@ export class Swagger {
           const controllers = luren.getControllers()
           for (const ctrl of controllers) {
             const ctrlMetadata: CtrlMetadata = Reflect.getMetadata(MetadataKey.CONTROLLER, ctrl)
-            const tag: ITag = { name: ctrlMetadata.name }
+            const tag: ITag = { name: ctrlMetadata.name, description: ctrlMetadata.desc }
             if (openApi.tags) {
               openApi.tags.push(tag)
             } else {
@@ -140,13 +140,14 @@ export class Swagger {
               Reflect.getMetadata(MetadataKey.ACTIONS, ctrl) || Map()
             for (const [prop, actionMetadata] of actionMetadataMap) {
               const pathObj: IPath = {}
-              pathObj[actionMetadata.method.toLowerCase()] = {
+              const operation: IOperation = {
                 tags: [ctrlMetadata.name],
+                summary: actionMetadata.summary,
                 description: actionMetadata.desc,
                 responses: {},
                 deprecated: actionMetadata.deprecated
               }
-              const operation: IOperation = pathObj[actionMetadata.method.toLowerCase()]
+              pathObj[actionMetadata.method.toLowerCase()] = operation
               const params = getParams(ctrl, prop)
               if (!_.isEmpty(params)) {
                 operation.parameters = params

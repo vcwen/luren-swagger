@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import _ from 'lodash'
 import { AuthenticationType, HttpStatusCode, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
-import { utils } from 'luren-schema'
+import { JsTypes } from 'luren-schema'
 import AuthenticationProcessor, { APITokenAuthentication } from 'luren/dist/lib/Authentication'
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
@@ -23,7 +23,7 @@ export const getParams = (ctrl: object, propKey: string) => {
         const props = Object.getOwnPropertyNames(paramMetadata.schema.properties)
         const requiredProps = paramMetadata.schema.required || []
         for (const prop of props) {
-          const propSchema = utils.toJsonSchema(paramMetadata.schema.properties[prop])
+          const propSchema = JsTypes.toJsonSchema(paramMetadata.schema.properties[prop])
           const param: IParameter = {
             name: paramMetadata.name,
             in: paramMetadata.source,
@@ -37,7 +37,7 @@ export const getParams = (ctrl: object, propKey: string) => {
         throw new TypeError("Parameter's type must be 'object' when it's root")
       }
     } else {
-      const schema = utils.toJsonSchema(paramMetadata.schema)
+      const schema = JsTypes.toJsonSchema(paramMetadata.schema)
       const param: IParameter = {
         name: paramMetadata.name,
         in: paramMetadata.source,
@@ -71,13 +71,13 @@ export const getRequestBody = (ctrl: object, prop: string) => {
           }
         }
         if (paramMetadata.root) {
-          schema = utils.toJsonSchema(paramMetadata.schema)
+          schema = JsTypes.toJsonSchema(paramMetadata.schema)
           break
         } else {
           if (paramMetadata.required) {
             schema.required.push(paramMetadata.name)
           }
-          schema.properties[paramMetadata.name] = utils.toJsonSchema(paramMetadata.schema)
+          schema.properties[paramMetadata.name] = JsTypes.toJsonSchema(paramMetadata.schema)
         }
       }
     }
@@ -117,7 +117,7 @@ export const getResponses = (ctrl: object, prop: string) => {
       const response: IResponse = {} as any
       const res: IMediaType = {} as any
       const contentType = resMetadata.mime || 'application/json'
-      const schema = utils.toJsonSchema(resMetadata.schema)
+      const schema = JsTypes.toJsonSchema(resMetadata.schema)
       res.schema = toOpenApiSchema(schema)
       response.content = { [contentType]: res }
       responses[statusCode] = response
