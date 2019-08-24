@@ -119,6 +119,7 @@ export const getResponses = (ctrl: object, prop: string) => {
       const contentType = resMetadata.mime || 'application/json'
       const schema = JsTypes.toJsonSchema(resMetadata.schema)
       res.schema = toOpenApiSchema(schema)
+      response.description = resMetadata.desc
       response.content = { [contentType]: res }
       responses[statusCode] = response
     }
