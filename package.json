@@ -16,8 +16,8 @@
     "reflect-metadata": "^0.1.13"
   },
   "peerDependencies": {
-    "luren": "0.0.x",
-    "luren-schema": "0.0.x"
+    "luren": "0.1.x",
+    "luren-schema": "0.1.x"
   },
   "devDependencies": {
     "@types/koa": "^2.0.48",
@@ -27,8 +27,8 @@
     "@types/lodash": "^4.14.123",
     "@types/nunjucks": "^3.1.1",
     "koa": "^2.7.0",
-    "luren": "^0.0.39",
-    "luren-schema": "^0.0.47",
+    "luren": "^0.1.2",
+    "luren-schema": "^0.1.2",
     "tslint-config-prettier": "^1.18.0"
   }
 }
