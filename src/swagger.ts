@@ -38,6 +38,7 @@ export interface IParameter {
   description?: string
   required?: boolean
   deprecated?: boolean
+  example?: any
 }
 
 export interface IMediaType {
@@ -197,7 +198,6 @@ export class Swagger {
               openApi.components.securitySchemes[name] = securitySchema
             }
           }
-
           this._openApi = openApi
         }
         ctx.body = this._openApi

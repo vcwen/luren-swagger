@@ -28,7 +28,11 @@ export const getParams = (ctrl: object, propKey: string) => {
             name: paramMetadata.name,
             in: paramMetadata.source,
             required: requiredProps.includes(prop),
-            schema: toOpenApiSchema(propSchema)
+            schema: toOpenApiSchema(propSchema),
+            description: paramMetadata.desc
+          }
+          if (paramMetadata.example) {
+            param.example = paramMetadata.example
           }
           params.push(param)
         }
@@ -37,13 +41,17 @@ export const getParams = (ctrl: object, propKey: string) => {
         throw new TypeError("Parameter's type must be 'object' when it's root")
       }
     } else {
-      const schema = JsTypes.toJsonSchema(paramMetadata.schema)
+      const schema = toOpenApiSchema(JsTypes.toJsonSchema(paramMetadata.schema))
+
       const param: IParameter = {
         name: paramMetadata.name,
         in: paramMetadata.source,
         required: paramMetadata.required,
-        schema: toOpenApiSchema(schema),
+        schema,
         description: paramMetadata.desc
+      }
+      if (paramMetadata.example) {
+        param.example = paramMetadata.example
       }
       params.push(param)
     }
@@ -72,12 +80,18 @@ export const getRequestBody = (ctrl: object, prop: string) => {
         }
         if (paramMetadata.root) {
           schema = JsTypes.toJsonSchema(paramMetadata.schema)
+          if (paramMetadata.example) {
+            schema.example = paramMetadata.example
+          }
           break
         } else {
           if (paramMetadata.required) {
             schema.required.push(paramMetadata.name)
           }
           schema.properties[paramMetadata.name] = JsTypes.toJsonSchema(paramMetadata.schema)
+          if (paramMetadata.example) {
+            schema.properties[paramMetadata.name].example = paramMetadata.example
+          }
         }
       }
     }
@@ -116,9 +130,15 @@ export const getResponses = (ctrl: object, prop: string) => {
     for (const [statusCode, resMetadata] of responsesMetadata) {
       const response: IResponse = {} as any
       const res: IMediaType = {} as any
-      const contentType = resMetadata.mime || 'application/json'
+      const contentType =
+        resMetadata.headers && resMetadata.headers['Content-Type']
+          ? resMetadata.headers['Content-Type']
+          : 'application/json'
       const schema = JsTypes.toJsonSchema(resMetadata.schema)
       res.schema = toOpenApiSchema(schema)
+      if (resMetadata.example) {
+        res.example = resMetadata.example
+      }
       response.description = resMetadata.desc
       response.content = { [contentType]: res }
       responses[statusCode] = response
