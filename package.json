@@ -9,6 +9,7 @@
   "dependencies": {
     "immutable": "^4.0.0-rc.12",
     "json-schema-to-openapi-schema": "^0.3.0",
+    "json-to-pretty-yaml": "^1.2.2",
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
     "lodash": "^4.17.11",

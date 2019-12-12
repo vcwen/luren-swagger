@@ -1319,6 +1319,14 @@ json-stringify-safe@~5.0.1:
   resolved "https://registry.npm.taobao.org/json-stringify-safe/download/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
   integrity sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
 
+json-to-pretty-yaml@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.npm.taobao.org/json-to-pretty-yaml/download/json-to-pretty-yaml-1.2.2.tgz#f4cd0bd0a5e8fe1df25aaf5ba118b099fd992d5b"
+  integrity sha1-9M0L0KXo/h3yWq9boRiwmf2ZLVs=
+  dependencies:
+    remedial "^1.0.7"
+    remove-trailing-spaces "^1.0.6"
+
 jsprim@^1.2.2:
   version "1.4.1"
   resolved "https://registry.npm.taobao.org/jsprim/download/jsprim-1.4.1.tgz#313e66bc1e5cc06e438bc1b7499c2e5c56acb6a2"
@@ -1507,7 +1515,7 @@ luren-schema@^0.1.2:
 
 luren@^0.1.2:
   version "0.1.2"
-  resolved "https://registry.npm.taobao.org/luren/download/luren-0.1.2.tgz?cache=0&sync_timestamp=1576070096303&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fluren%2Fdownload%2Fluren-0.1.2.tgz#809893c1e1416faa2e15a3a6959126e3adbf6797"
+  resolved "https://registry.npm.taobao.org/luren/download/luren-0.1.2.tgz#809893c1e1416faa2e15a3a6959126e3adbf6797"
   integrity sha1-gJiTweFBb6ouFaOmlZEm462/Z5c=
   dependencies:
     ajv "^6.10.0"
@@ -2013,10 +2021,20 @@ regex-not@^1.0.0, regex-not@^1.0.2:
     extend-shallow "^3.0.2"
     safe-regex "^1.1.0"
 
+remedial@^1.0.7:
+  version "1.0.8"
+  resolved "https://registry.npm.taobao.org/remedial/download/remedial-1.0.8.tgz#a5e4fd52a0e4956adbaf62da63a5a46a78c578a0"
+  integrity sha1-peT9UqDklWrbr2LaY6WkanjFeKA=
+
 remove-trailing-separator@^1.0.1:
   version "1.1.0"
   resolved "https://registry.npm.taobao.org/remove-trailing-separator/download/remove-trailing-separator-1.1.0.tgz#c24bce2a283adad5bc3f58e0d48249b92379d8ef"
   integrity sha1-wkvOKig62tW8P1jg1IJJuSN52O8=
+
+remove-trailing-spaces@^1.0.6:
+  version "1.0.7"
+  resolved "https://registry.npm.taobao.org/remove-trailing-spaces/download/remove-trailing-spaces-1.0.7.tgz#491f04e11d98880714d12429b0d0938cbe030ae6"
+  integrity sha1-SR8E4R2YiAcU0SQpsNCTjL4DCuY=
 
 repeat-element@^1.1.2:
   version "1.1.3"

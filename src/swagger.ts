@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { Map } from 'immutable'
 import Router from 'koa-router'
 import _ from 'lodash'
@@ -5,7 +6,7 @@ import { ActionMetadata, AuthenticationType, CtrlMetadata, Luren, MetadataKey } 
 import AuthenticationProcessor from 'luren/dist/lib/Authentication'
 import njk from 'nunjucks'
 import Path from 'path'
-import { authenticationProcessorToSecuritySchema, getParams, getRequestBody, getResponses } from './utils'
+import { authenticationProcessorToSecuritySchema, getParams, getRequestBody, getResponses, toYaml } from './utils'
 
 export interface IContact {
   name: string
@@ -104,12 +105,14 @@ export interface IOpenApi {
 export class Swagger {
   private _info: IInfo
   private _servers: IServer[]
-  private _openApi: any
+  private _openApi!: IOpenApi
   private _path: string
-  constructor(options?: { info?: IInfo; servers?: IServer[]; path?: string }) {
+  private _output?: string
+  constructor(options?: { info?: IInfo; servers?: IServer[]; path?: string; output?: string }) {
     this._info = (options && options.info) || { title: 'Luren Swagger', version: '1.0.0' }
     this._servers = (options && options.servers) || [{ url: '/' }]
     this._path = (options && options.path) || '/explorer'
+    this._output = options && options.output
   }
   public pluginify() {
     return (luren: Luren) => {
@@ -199,6 +202,15 @@ export class Swagger {
             }
           }
           this._openApi = openApi
+        }
+        if (this._output) {
+          const file = Path.resolve(this._output, `swagger-v${this._openApi.info.version}.yml`)
+          fs.writeFile(file, Buffer.from(toYaml(this._openApi)), (err) => {
+            if (err) {
+              // tslint:disable-next-line: no-console
+              console.error(err)
+            }
+          })
         }
         ctx.body = this._openApi
       })

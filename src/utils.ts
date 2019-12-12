@@ -3,9 +3,13 @@ import _ from 'lodash'
 import { AuthenticationType, HttpStatusCode, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
 import { JsTypes } from 'luren-schema'
 import AuthenticationProcessor, { APITokenAuthentication } from 'luren/dist/lib/Authentication'
+
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
 const toOpenApiSchema = require('json-schema-to-openapi-schema')
+
+// tslint:disable-next-line: no-var-requires
+const yaml = require('json-to-pretty-yaml')
 
 export const getParams = (ctrl: object, propKey: string) => {
   const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAMS, ctrl, propKey)
@@ -69,6 +73,7 @@ export const getRequestBody = (ctrl: object, prop: string) => {
   let schema: any = { type: 'object', properties: {}, required: [] }
   const bodyParamsMetadata = paramsMetadata.filter((metadata) => metadata.source === 'body')
   if (!bodyParamsMetadata.isEmpty()) {
+    let bodyDesc: string[] = []
     for (const paramMetadata of bodyParamsMetadata) {
       if (paramMetadata.source === 'body') {
         if (paramMetadata.schema.type === 'file') {
@@ -83,6 +88,9 @@ export const getRequestBody = (ctrl: object, prop: string) => {
           if (paramMetadata.example) {
             schema.example = paramMetadata.example
           }
+          if (paramMetadata.desc) {
+            bodyDesc = [paramMetadata.desc]
+          }
           break
         } else {
           if (paramMetadata.required) {
@@ -92,10 +100,14 @@ export const getRequestBody = (ctrl: object, prop: string) => {
           if (paramMetadata.example) {
             schema.properties[paramMetadata.name].example = paramMetadata.example
           }
+          if (paramMetadata.desc) {
+            bodyDesc.push(`<strong>${paramMetadata.name}</strong>: ${paramMetadata.desc}`)
+          }
         }
       }
     }
     body.content = { [content]: { schema: toOpenApiSchema(schema) } }
+    body.description = bodyDesc.join('<br/>')
     return body
   }
 }
@@ -158,4 +170,35 @@ export const authenticationProcessorToSecuritySchema = (processor: Authenticatio
     default:
       return undefined
   }
+}
+
+const stripUndefined = (data: any) => {
+  if (data === undefined) {
+    return null
+  }
+  if (Array.isArray(data)) {
+    for (let i = 0; i < data.length; i++) {
+      if (data[i] === undefined) {
+        data[i] = null
+      } else {
+        stripUndefined(data[i])
+      }
+    }
+    return data
+  } else if (typeof data === 'object') {
+    const props = Object.getOwnPropertyNames(data)
+    for (const prop of props) {
+      if (data[prop] === undefined) {
+        Reflect.deleteProperty(data, prop)
+      }
+    }
+    return data
+  } else {
+    return data
+  }
+}
+
+export const toYaml = (data: any) => {
+  stripUndefined(data)
+  return yaml.stringify(data, { maxDepth: 20, noColor: true })
 }
