@@ -1,6 +1,20 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [0.1.0](https://github.com/vcwen/luren-swagger/compare/v0.0.15...v0.1.0) (2019-12-12)
+
+
+### Features
+
+* **docs:** allow write swagger to file ([de35420](https://github.com/vcwen/luren-swagger/commit/de354209ea132339bf985034523778c0bcb4a225))
+* **example:** example for response & param ([64d79b2](https://github.com/vcwen/luren-swagger/commit/64d79b2c7516577901e7792cad964e7f91f7ced5))
+* **swagger-ui:** upgrade swagger-ui version ([9cdf55e](https://github.com/vcwen/luren-swagger/commit/9cdf55e813ef39e0fb445b64dad734001ea2b963))
+
+
+### Bug Fixes
+
+* **Response:** response description ([b944d98](https://github.com/vcwen/luren-swagger/commit/b944d989283ff7a07d0df4e1e4fd4248344a49b2))
 
 <a name="0.0.15"></a>
 ## [0.0.15](https://github.com/vcwen/luren-swagger/compare/v0.0.14...v0.0.15) (2019-08-23)
