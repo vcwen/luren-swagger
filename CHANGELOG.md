@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/vcwen/luren-swagger/compare/v0.1.0...v0.1.1) (2019-12-27)
+
+
+### Features
+
+* **auth:** add http authentication ([603f148](https://github.com/vcwen/luren-swagger/commit/603f14880edff047c2d01f02f1e77dac9a07d8e3))
+
 ## [0.1.0](https://github.com/vcwen/luren-swagger/compare/v0.0.15...v0.1.0) (2019-12-12)
 
 
