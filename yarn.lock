@@ -790,6 +790,11 @@ fast-json-stable-stringify@^2.0.0:
   resolved "https://registry.npm.taobao.org/fast-json-stable-stringify/download/fast-json-stable-stringify-2.0.0.tgz#d5142c0caee6b1189f87d3a76111064f86c8bbf2"
   integrity sha1-1RQsDK7msRifh9OnYREGT4bIu/I=
 
+fast-safe-stringify@^2.0.7:
+  version "2.0.7"
+  resolved "https://registry.npm.taobao.org/fast-safe-stringify/download/fast-safe-stringify-2.0.7.tgz#124aa885899261f68aedb42a7c080de9da608743"
+  integrity sha1-EkqohYmSYfaK7bQqfAgN6dpgh0M=
+
 feature-policy@0.3.0:
   version "0.3.0"
   resolved "https://registry.npm.taobao.org/feature-policy/download/feature-policy-0.3.0.tgz#7430e8e54a40da01156ca30aaec1a381ce536069"
@@ -1513,15 +1518,16 @@ luren-schema@^0.1.2:
     luxon "^1.17.2"
     reflect-metadata "^0.1.13"
 
-luren@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.npm.taobao.org/luren/download/luren-0.1.2.tgz#809893c1e1416faa2e15a3a6959126e3adbf6797"
-  integrity sha1-gJiTweFBb6ouFaOmlZEm462/Z5c=
+luren@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.npm.taobao.org/luren/download/luren-0.1.4.tgz?cache=0&sync_timestamp=1577408529558&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fluren%2Fdownload%2Fluren-0.1.4.tgz#9760031c21b41a5bdd54fe54cfc98f9eea0fad9d"
+  integrity sha1-l2ADHCG0GlvdVP5Uz8mPnuoPrZ0=
   dependencies:
     ajv "^6.10.0"
     boom "^7.3.0"
     debug "^4.1.1"
     decamelize "^3.2.0"
+    fast-safe-stringify "^2.0.7"
     formidable "^1.2.1"
     header-case "^1.0.1"
     immutable "^4.0.0-rc.12"

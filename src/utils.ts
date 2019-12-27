@@ -2,7 +2,7 @@ import { List } from 'immutable'
 import _ from 'lodash'
 import { AuthenticationType, HttpStatusCode, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
 import { JsTypes } from 'luren-schema'
-import AuthenticationProcessor, { APITokenAuthentication } from 'luren/dist/lib/Authentication'
+import AuthenticationProcessor, { APITokenAuthentication, HTTPAuthentication } from 'luren/dist/lib/Authentication'
 
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
@@ -164,9 +164,15 @@ export const getResponses = (ctrl: object, prop: string) => {
 
 export const authenticationProcessorToSecuritySchema = (processor: AuthenticationProcessor): any => {
   switch (processor.type) {
-    case AuthenticationType.API_TOKEN:
+    case AuthenticationType.API_TOKEN: {
       const p = processor as APITokenAuthentication
       return { type: 'apiKey', name: p.key, in: p.source }
+    }
+
+    case AuthenticationType.HTTP: {
+      const p = processor as HTTPAuthentication
+      return { type: 'http', scheme: p.scheme, bearerFormat: p.bearerFormat }
+    }
     default:
       return undefined
   }

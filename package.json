@@ -28,7 +28,7 @@
     "@types/lodash": "^4.14.123",
     "@types/nunjucks": "^3.1.1",
     "koa": "^2.7.0",
-    "luren": "^0.1.2",
+    "luren": "^0.1.4",
     "luren-schema": "^0.1.2",
     "tslint-config-prettier": "^1.18.0"
   }
