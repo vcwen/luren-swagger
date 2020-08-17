@@ -1,9 +1,6 @@
-import { List } from 'immutable'
 import _ from 'lodash'
-import { AuthenticationType, HttpStatusCode, MetadataKey, ParamMetadata, ResponseMetadata } from 'luren'
+import { HttpStatusCode, AuthenticationType, IAuthenticatorDescriptor, ActionModule } from 'luren'
 import { JsTypes } from 'luren-schema'
-import AuthenticationProcessor, { APITokenAuthentication, HTTPAuthentication } from 'luren/dist/lib/Authentication'
-
 import { IMediaType, IParameter, IRequestBody, IResponse } from './swagger'
 // tslint:disable-next-line: no-var-requires
 const toOpenApiSchema = require('json-schema-to-openapi-schema')
@@ -11,51 +8,53 @@ const toOpenApiSchema = require('json-schema-to-openapi-schema')
 // tslint:disable-next-line: no-var-requires
 const yaml = require('json-to-pretty-yaml')
 
-export const getParams = (ctrl: object, propKey: string) => {
-  const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAMS, ctrl, propKey)
-  if (!paramsMetadata) {
+export const getParams = (actionModule: ActionModule) => {
+  const paramInfos = actionModule.params
+  if (paramInfos.isEmpty()) {
     return []
   }
   let params: IParameter[] = []
-  for (const paramMetadata of paramsMetadata) {
-    if (paramMetadata.source === 'context' || paramMetadata.source === 'body') {
+  for (const paramInfo of paramInfos) {
+    if (paramInfo.source === 'context' || paramInfo.source === 'body') {
       continue
     }
-    if (paramMetadata.root) {
+    if (paramInfo.root) {
       params = []
-      if (paramMetadata.schema.properties) {
-        const props = Object.getOwnPropertyNames(paramMetadata.schema.properties)
-        const requiredProps = paramMetadata.schema.required || []
+      if (paramInfo.schema.properties) {
+        const props = Object.getOwnPropertyNames(paramInfo.schema.properties)
+        const requiredProps = paramInfo.schema.required || []
         for (const prop of props) {
-          const propSchema = JsTypes.toJsonSchema(paramMetadata.schema.properties[prop])
+          const propSchema = JsTypes.toJsonSchema(paramInfo.schema.properties[prop])
           const param: IParameter = {
-            name: paramMetadata.name,
-            in: paramMetadata.source,
+            name: prop,
+            in: paramInfo.source,
             required: requiredProps.includes(prop),
             schema: toOpenApiSchema(propSchema),
-            description: paramMetadata.desc
+            description: paramInfo.desc
           }
-          if (paramMetadata.example) {
-            param.example = paramMetadata.example
+          if (paramInfo.example) {
+            param.example = paramInfo.example
           }
           params.push(param)
+        }
+        if (actionModule.targetFunction === 'findOne') {
+          console.log(params)
         }
         return params
       } else {
         throw new TypeError("Parameter's type must be 'object' when it's root")
       }
     } else {
-      const schema = toOpenApiSchema(JsTypes.toJsonSchema(paramMetadata.schema))
-
+      const schema = toOpenApiSchema(JsTypes.toJsonSchema(paramInfo.schema))
       const param: IParameter = {
-        name: paramMetadata.name,
-        in: paramMetadata.source,
-        required: paramMetadata.required,
+        name: paramInfo.name,
+        in: paramInfo.source,
+        required: paramInfo.required,
         schema,
-        description: paramMetadata.desc
+        description: paramInfo.desc
       }
-      if (paramMetadata.example) {
-        param.example = paramMetadata.example
+      if (paramInfo.example) {
+        param.example = paramInfo.example
       }
       params.push(param)
     }
@@ -63,45 +62,45 @@ export const getParams = (ctrl: object, propKey: string) => {
   return params
 }
 
-export const getRequestBody = (ctrl: object, prop: string) => {
-  const paramsMetadata: List<ParamMetadata> = Reflect.getMetadata(MetadataKey.PARAMS, ctrl, prop)
-  if (!paramsMetadata) {
+export const getRequestBody = (actionModule: ActionModule) => {
+  const paramInfos = actionModule.params
+  if (!paramInfos) {
     return {} as any
   }
   const body: IRequestBody = { content: {} }
   let content = 'application/json'
   let schema: any = { type: 'object', properties: {}, required: [] }
-  const bodyParamsMetadata = paramsMetadata.filter((metadata) => metadata.source === 'body')
-  if (!bodyParamsMetadata.isEmpty()) {
+  const bodyParamInfos = paramInfos.filter((info) => info.source === 'body')
+  if (!bodyParamInfos.isEmpty()) {
     let bodyDesc: string[] = []
-    for (const paramMetadata of bodyParamsMetadata) {
-      if (paramMetadata.source === 'body') {
-        if (paramMetadata.schema.type === 'file') {
-          if (paramMetadata.root) {
-            content = paramMetadata.mime || 'application/octet-stream'
+    for (const paramInfo of bodyParamInfos) {
+      if (paramInfo.source === 'body') {
+        if (paramInfo.schema.type === 'file') {
+          if (paramInfo.root) {
+            content = paramInfo.mime || 'application/octet-stream'
           } else {
             content = 'multipart/form-data'
           }
         }
-        if (paramMetadata.root) {
-          schema = JsTypes.toJsonSchema(paramMetadata.schema)
-          if (paramMetadata.example) {
-            schema.example = paramMetadata.example
+        if (paramInfo.root) {
+          schema = JsTypes.toJsonSchema(paramInfo.schema)
+          if (paramInfo.example) {
+            schema.example = paramInfo.example
           }
-          if (paramMetadata.desc) {
-            bodyDesc = [paramMetadata.desc]
+          if (paramInfo.desc) {
+            bodyDesc = [paramInfo.desc]
           }
           break
         } else {
-          if (paramMetadata.required) {
-            schema.required.push(paramMetadata.name)
+          if (paramInfo.required) {
+            schema.required.push(paramInfo.name)
           }
-          schema.properties[paramMetadata.name] = JsTypes.toJsonSchema(paramMetadata.schema)
-          if (paramMetadata.example) {
-            schema.properties[paramMetadata.name].example = paramMetadata.example
+          schema.properties[paramInfo.name] = JsTypes.toJsonSchema(paramInfo.schema)
+          if (paramInfo.example) {
+            schema.properties[paramInfo.name].example = paramInfo.example
           }
-          if (paramMetadata.desc) {
-            bodyDesc.push(`<strong>${paramMetadata.name}</strong>: ${paramMetadata.desc}`)
+          if (paramInfo.desc) {
+            bodyDesc.push(`<strong>${paramInfo.name}</strong>: ${paramInfo.desc}`)
           }
         }
       }
@@ -135,23 +134,21 @@ const normalizeResponseSchema = (schema: any): any => {
   return schema
 }
 
-export const getResponses = (ctrl: object, prop: string) => {
-  const responsesMetadata: Map<number, ResponseMetadata> = Reflect.getMetadata(MetadataKey.RESPONSE, ctrl, prop)
+export const getResponses = (actionModule: ActionModule) => {
+  const responseInfos = actionModule.responses
   const responses: { [code: string]: IResponse } = {}
-  if (responsesMetadata) {
-    for (const [statusCode, resMetadata] of responsesMetadata) {
+  if (responseInfos) {
+    for (const [statusCode, resInfo] of responseInfos) {
       const response: IResponse = {} as any
       const res: IMediaType = {} as any
       const contentType =
-        resMetadata.headers && resMetadata.headers['Content-Type']
-          ? resMetadata.headers['Content-Type']
-          : 'application/json'
-      const schema = JsTypes.toJsonSchema(resMetadata.schema)
+        resInfo.headers && resInfo.headers['Content-Type'] ? resInfo.headers['Content-Type'] : 'application/json'
+      const schema = JsTypes.toJsonSchema(resInfo.schema)
       res.schema = toOpenApiSchema(schema)
-      if (resMetadata.example) {
-        res.example = resMetadata.example
+      if (resInfo.example) {
+        res.example = resInfo.example
       }
-      response.description = resMetadata.desc
+      response.description = resInfo.desc
       response.content = { [contentType]: res }
       responses[statusCode] = response
     }
@@ -162,16 +159,21 @@ export const getResponses = (ctrl: object, prop: string) => {
   return responses
 }
 
-export const authenticationProcessorToSecuritySchema = (processor: AuthenticationProcessor): any => {
-  switch (processor.type) {
+export const authenticatorToSecuritySchema = (
+  authDescriptor: IAuthenticatorDescriptor & { [key: string]: any }
+): any => {
+  switch (authDescriptor.authenticationType) {
     case AuthenticationType.API_TOKEN: {
-      const p = processor as APITokenAuthentication
-      return { type: 'apiKey', name: p.key, in: p.source }
+      return { id: authDescriptor.name, type: 'apiKey', name: authDescriptor.key, in: authDescriptor.source }
     }
 
     case AuthenticationType.HTTP: {
-      const p = processor as HTTPAuthentication
-      return { type: 'http', scheme: p.scheme, bearerFormat: p.bearerFormat }
+      return {
+        type: 'http',
+        id: authDescriptor.id,
+        scheme: authDescriptor.scheme,
+        bearerFormat: authDescriptor.format
+      }
     }
     default:
       return undefined

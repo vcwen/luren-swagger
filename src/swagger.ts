@@ -1,13 +1,12 @@
 import fs from 'fs'
-import { Map } from 'immutable'
-import Router from 'koa-router'
+import Router from '@koa/router'
 import _ from 'lodash'
-import { ActionMetadata, AuthenticationType, CtrlMetadata, Luren, MetadataKey } from 'luren'
-import AuthenticationProcessor from 'luren/dist/lib/Authentication'
+import { Luren, PresetGuardType, GuardGroup, Guard, ModuleContext, MountType } from 'luren'
 import njk from 'nunjucks'
 import Path from 'path'
-import { authenticationProcessorToSecuritySchema, getParams, getRequestBody, getResponses, toYaml } from './utils'
-
+import { getParams, getRequestBody, getResponses, toYaml, authenticatorToSecuritySchema } from './utils'
+import { Authenticator } from 'luren/dist/processors/Authenticator'
+import { Map } from 'immutable'
 export interface IContact {
   name: string
   url: string
@@ -91,6 +90,32 @@ export interface ITag {
   description?: string
 }
 
+function isAuthenticator(guard: Guard): guard is Authenticator {
+  return guard instanceof Authenticator
+}
+
+const getExpectedGuards = (type: string, moduleContext: ModuleContext) => {
+  const guardGroup = moduleContext.appModule.guards.get(type) ?? new GuardGroup(MountType.INTEGRATE, [])
+  let guards = guardGroup.guards
+  if (moduleContext.controllerModule) {
+    const ctrlGuardGroup = moduleContext.controllerModule.guards.get(type) ?? new GuardGroup(MountType.INTEGRATE, [])
+    if (ctrlGuardGroup.mountType === MountType.OVERRIDE) {
+      guards = ctrlGuardGroup.guards
+    } else {
+      guards = guards.concat(ctrlGuardGroup.guards)
+    }
+    if (moduleContext.actionModule) {
+      const actionGuardGroup = moduleContext.actionModule.guards.get(type) ?? new GuardGroup(MountType.INTEGRATE, [])
+      if (actionGuardGroup.mountType === MountType.OVERRIDE) {
+        guards = actionGuardGroup.guards
+      } else {
+        guards = guards.concat(actionGuardGroup.guards)
+      }
+    }
+  }
+  return guards
+}
+
 export interface IOpenApi {
   openapi: string
   info: IInfo
@@ -110,7 +135,7 @@ export class Swagger {
   private _output?: string
   constructor(options?: { info?: IInfo; servers?: IServer[]; path?: string; output?: string }) {
     this._info = (options && options.info) || { title: 'Luren Swagger', version: '1.0.0' }
-    this._servers = (options && options.servers) || [{ url: '/' }]
+    this._servers = (options && options.servers) || [{ url: '/', description: 'localhost' }]
     this._path = (options && options.path) || '/explorer'
     this._output = options && options.output
   }
@@ -128,48 +153,43 @@ export class Swagger {
         }
       }
       const router = new Router()
+
       router.get('/swagger.json', async (ctx) => {
         if (!this._openApi) {
+          const appModule = luren.getAppModule()
           let securitySchemes = Map<string, any>()
-          const controllers = luren.getControllers()
-          for (const ctrl of controllers) {
-            const ctrlMetadata: CtrlMetadata = Reflect.getMetadata(MetadataKey.CONTROLLER, ctrl)
-            const tag: ITag = { name: ctrlMetadata.name, description: ctrlMetadata.desc }
+          const ctrlModules = luren.getAppModule().controllerModules
+          for (const ctrlModule of ctrlModules) {
+            const tag: ITag = { name: ctrlModule.name, description: ctrlModule.desc }
             if (openApi.tags) {
               openApi.tags.push(tag)
             } else {
               openApi.tags = [tag]
             }
-            const actionMetadataMap: Map<string, ActionMetadata> =
-              Reflect.getMetadata(MetadataKey.ACTIONS, ctrl) || Map()
-            for (const [prop, actionMetadata] of actionMetadataMap) {
+
+            for (const actionModule of ctrlModule.actionModules) {
               const pathObj: IPath = {}
               const operation: IOperation = {
-                tags: [ctrlMetadata.name],
-                summary: actionMetadata.summary,
-                description: actionMetadata.desc,
+                tags: [ctrlModule.name],
+                // summary: actionModule.summary,
+                description: actionModule.desc,
                 responses: {},
-                deprecated: actionMetadata.deprecated
+                deprecated: actionModule.deprecated
               }
-              pathObj[actionMetadata.method.toLowerCase()] = operation
-              const params = getParams(ctrl, prop)
+              pathObj[actionModule.method.toLowerCase()] = operation
+              const params = getParams(actionModule)
               if (!_.isEmpty(params)) {
                 operation.parameters = params
               }
-              const requestBody = getRequestBody(ctrl, prop)
+              const requestBody = getRequestBody(actionModule)
               if (!_.isEmpty(requestBody)) {
                 operation.requestBody = requestBody
               }
-              const responses = getResponses(ctrl, prop)
+              const responses = getResponses(actionModule)
+
               operation.responses = responses
-              const version = actionMetadata.version || ctrlMetadata.version || ''
-              let path = Path.join(
-                luren.getPrefix(),
-                ctrlMetadata.prefix,
-                version,
-                ctrlMetadata.path,
-                actionMetadata.path
-              )
+              const version = actionModule.version || ctrlModule.version || ''
+              let path = Path.join(ctrlModule.prefix, version, ctrlModule.path, actionModule.path)
               const reg = /:(\w+)/
               let match: any
               do {
@@ -179,27 +199,26 @@ export class Swagger {
                 }
               } while (match)
               openApi.paths[path] = openApi.paths[path] || {}
-              openApi.paths[path][actionMetadata.method.toLowerCase()] = operation
-              const authProcessor: AuthenticationProcessor | undefined =
-                Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl, prop) ||
-                Reflect.getMetadata(MetadataKey.AUTHENTICATION, ctrl) ||
-                luren.getSecuritySettings().authentication
-              if (authProcessor && authProcessor.type !== AuthenticationType.NONE) {
-                const securitySchema = authenticationProcessorToSecuritySchema(authProcessor)
-                const entry = securitySchemes.findEntry((val) => _.isEqual(val, securitySchema))
-                if (entry) {
-                  operation.security = [{ [entry[0]]: [] }]
-                } else {
-                  securitySchemes = securitySchemes.set(authProcessor.name, securitySchema)
-                  operation.security = [{ [authProcessor.name]: [] }]
+              openApi.paths[path][actionModule.method.toLowerCase()] = operation
+              const moduleContext = new ModuleContext(appModule, ctrlModule, actionModule)
+              const guards = getExpectedGuards(PresetGuardType.Authenticator, moduleContext)
+              const descriptors = guards.filter(isAuthenticator).map((item) => item.getDescriptor())
+              if (descriptors) {
+                for (const descriptor of descriptors) {
+                  const securitySchema = authenticatorToSecuritySchema(descriptor)
+                  if (!securitySchemes.has(descriptor.name)) {
+                    securitySchemes = securitySchemes.set(descriptor.name, securitySchema)
+                  }
+                  if (!operation.security) {
+                    operation.security = []
+                  }
+                  operation.security.push({ [descriptor.name]: [] })
                 }
               }
             }
           }
           for (const [name, securitySchema] of securitySchemes.entries()) {
-            if (securitySchema) {
-              openApi.components.securitySchemes[name] = securitySchema
-            }
+            openApi.components.securitySchemes[name] = securitySchema
           }
           this._openApi = openApi
         }
