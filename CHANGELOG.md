@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/vcwen/luren-swagger/compare/v0.1.2...v0.1.3) (2020-09-17)
+
+
+### Features
+
+* **luren:** upgrade luren version ([81a4f3b](https://github.com/vcwen/luren-swagger/commit/81a4f3be8fcd3745d248ad732920eaf638d1220a))
+
 ### [0.1.2](https://github.com/vcwen/luren-swagger/compare/v0.1.1...v0.1.2) (2020-08-17)
 
 
