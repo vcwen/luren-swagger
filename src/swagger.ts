@@ -1,12 +1,14 @@
 import fs from 'fs'
 import Router from '@koa/router'
 import _ from 'lodash'
-import { Luren, PresetGuardType, GuardGroup, Guard, ModuleContext, MountType } from 'luren'
+import { Luren, AuthenticationType, Middleware } from 'luren'
 import njk from 'nunjucks'
 import Path from 'path'
 import { getParams, getRequestBody, getResponses, toYaml, authenticatorToSecuritySchema } from './utils'
 import { Authenticator } from 'luren/dist/processors/Authenticator'
-import { Map } from 'immutable'
+import { List, Map } from 'immutable'
+import mount from 'koa-mount'
+
 export interface IContact {
   name: string
   url: string
@@ -90,30 +92,8 @@ export interface ITag {
   description?: string
 }
 
-function isAuthenticator(guard: Guard): guard is Authenticator {
-  return guard instanceof Authenticator
-}
-
-const getExpectedGuards = (type: string, moduleContext: ModuleContext) => {
-  const guardGroup = moduleContext.appModule.guards.get(type) ?? new GuardGroup(MountType.INTEGRATE, [])
-  let guards = guardGroup.guards
-  if (moduleContext.controllerModule) {
-    const ctrlGuardGroup = moduleContext.controllerModule.guards.get(type) ?? new GuardGroup(MountType.INTEGRATE, [])
-    if (ctrlGuardGroup.mountType === MountType.OVERRIDE) {
-      guards = ctrlGuardGroup.guards
-    } else {
-      guards = guards.concat(ctrlGuardGroup.guards)
-    }
-    if (moduleContext.actionModule) {
-      const actionGuardGroup = moduleContext.actionModule.guards.get(type) ?? new GuardGroup(MountType.INTEGRATE, [])
-      if (actionGuardGroup.mountType === MountType.OVERRIDE) {
-        guards = actionGuardGroup.guards
-      } else {
-        guards = guards.concat(actionGuardGroup.guards)
-      }
-    }
-  }
-  return guards
+function isAuthenticator(middleware: Middleware): middleware is Authenticator {
+  return middleware instanceof Authenticator && middleware.authenticationType !== AuthenticationType.NONE
 }
 
 export interface IOpenApi {
@@ -121,7 +101,7 @@ export interface IOpenApi {
   info: IInfo
   servers: IServer[]
   paths: { [path: string]: IPath }
-  components: { schemas: any; securitySchemes: any }
+  components: { schemas: any; securitySchemes?: any }
   security?: any[]
   tags?: ITag[]
   externalDocs?: any
@@ -148,15 +128,14 @@ export class Swagger {
         tags: [],
         paths: {},
         components: {
-          schemas: {},
-          securitySchemes: {}
+          schemas: {}
         }
       }
       const router = new Router()
 
       router.get('/swagger.json', async (ctx) => {
         if (!this._openApi) {
-          const appModule = luren.getAppModule()
+          // const appModule = luren.getAppModule()
           let securitySchemes = Map<string, any>()
           const ctrlModules = luren.getAppModule().controllerModules
           for (const ctrlModule of ctrlModules) {
@@ -200,9 +179,10 @@ export class Swagger {
               } while (match)
               openApi.paths[path] = openApi.paths[path] || {}
               openApi.paths[path][actionModule.method.toLowerCase()] = operation
-              const moduleContext = new ModuleContext(appModule, ctrlModule, actionModule)
-              const guards = getExpectedGuards(PresetGuardType.Authenticator, moduleContext)
-              const descriptors = guards.filter(isAuthenticator).map((item) => item.getDescriptor())
+              const authenticators = actionModule.middleware.filter((item) => isAuthenticator(item)) as List<
+                Authenticator
+              >
+              const descriptors = authenticators.map((item) => item.getDescriptor())
               if (descriptors) {
                 for (const descriptor of descriptors) {
                   const securitySchema = authenticatorToSecuritySchema(descriptor)
@@ -217,9 +197,13 @@ export class Swagger {
               }
             }
           }
-          for (const [name, securitySchema] of securitySchemes.entries()) {
-            openApi.components.securitySchemes[name] = securitySchema
+          if (!securitySchemes.isEmpty()) {
+            openApi.components.securitySchemes = {}
+            for (const [name, securitySchema] of securitySchemes.entries()) {
+              openApi.components.securitySchemes[name] = securitySchema
+            }
           }
+
           this._openApi = openApi
         }
         if (this._output) {
@@ -239,7 +223,7 @@ export class Swagger {
           assetPrefix: 'assets'
         })
       })
-      luren.use(this._path, router.routes() as any)
+      luren.use(mount(this._path, router.routes() as any))
       luren.serve(Path.join(this._path, 'assets'), { root: Path.resolve(__dirname, '../swagger-dist') })
     }
   }

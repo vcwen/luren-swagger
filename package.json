@@ -7,6 +7,7 @@
   "author": "Vincent Wen <wenwei1202@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@koa/router": "^9.4.0",
     "immutable": "^4.0.0-rc.12",
     "json-schema-to-openapi-schema": "^0.3.0",
     "json-to-pretty-yaml": "^1.2.2",
@@ -29,8 +30,8 @@
     "@types/lodash": "^4.14.123",
     "@types/nunjucks": "^3.1.1",
     "koa": "^2.7.0",
-    "luren": "^0.2.6",
-    "luren-schema": "^0.2.5",
+    "luren": "^0.3.1",
+    "luren-schema": "^0.2.8",
     "tslint-config-prettier": "^1.18.0"
   }
 }
